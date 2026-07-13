@@ -10,6 +10,48 @@ const _brandLightRed = Color(0xFFFFE8E6);
 const _pageBackground = Color(0xFFFFF7F5);
 const _textMuted = Color(0xFF756866);
 
+const _mockCustomer = MockCustomer(
+  name: 'Mariana Costa',
+  email: 'mariana.costa@email.com',
+  phone: '(92) 99988-7766',
+  cpf: '123.456.789-00',
+  memberSince: 'Cliente desde janeiro de 2025',
+);
+
+const _mockAddress = MockAddress(
+  label: 'Casa',
+  cep: '69058-001',
+  street: 'Avenida Djalma Batista',
+  number: '1661',
+  neighborhood: 'Chapada',
+  city: 'Manaus',
+  reference: 'Apto 804, torre Rio Negro',
+);
+
+const _mockOrders = [
+  MockOrder(
+    id: 'SM-482913',
+    date: '12 jul 2026',
+    status: 'Entregue',
+    total: 126.72,
+    items: 'Banana, arroz, café e leite',
+  ),
+  MockOrder(
+    id: 'SM-471208',
+    date: '05 jul 2026',
+    status: 'Em rota',
+    total: 83.40,
+    items: 'Pão francês, suco e limpeza',
+  ),
+  MockOrder(
+    id: 'SM-460155',
+    date: '28 jun 2026',
+    status: 'Entregue',
+    total: 214.16,
+    items: 'Compra do mês',
+  ),
+];
+
 class SoDeMercadoApp extends StatelessWidget {
   const SoDeMercadoApp({super.key});
 
@@ -240,6 +282,12 @@ class _MarketHomePageState extends State<MarketHomePage> {
           ],
         ),
         actions: [
+          IconButton.filledTonal(
+            tooltip: 'Área do cliente',
+            onPressed: _openCustomerArea,
+            icon: const Icon(Icons.person_outline),
+          ),
+          const SizedBox(width: 6),
           IconButton.filledTonal(
             tooltip: 'Carrinho',
             onPressed: _cartCount == 0 ? null : _showCart,
@@ -498,6 +546,14 @@ class _MarketHomePageState extends State<MarketHomePage> {
           },
         );
       },
+    );
+  }
+
+  void _openCustomerArea() {
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => const CustomerAreaPage(),
+      ),
     );
   }
 }
@@ -997,6 +1053,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     super.initState();
     final suffix = DateTime.now().millisecondsSinceEpoch.toString();
     _orderId = 'SM-${suffix.substring(suffix.length - 6)}';
+    _fillMockCheckoutData();
   }
 
   @override
@@ -1051,6 +1108,13 @@ class _CheckoutPageState extends State<CheckoutPage> {
         key: _accountFormKey,
         child: Column(
           children: [
+            _MockDataCard(
+              title: 'Conta mockada',
+              subtitle: '${_mockCustomer.name} • ${_mockCustomer.email}',
+              icon: Icons.auto_awesome,
+              onTap: _fillMockCheckoutData,
+            ),
+            const SizedBox(height: 12),
             _CheckoutTextField(
               controller: _nameController,
               label: 'Nome completo',
@@ -1106,6 +1170,13 @@ class _CheckoutPageState extends State<CheckoutPage> {
         key: _addressFormKey,
         child: Column(
           children: [
+            _MockDataCard(
+              title: 'Usar endereço salvo',
+              subtitle: _mockAddress.fullLine,
+              icon: Icons.home_work_outlined,
+              onTap: _fillMockCheckoutData,
+            ),
+            const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(
@@ -1462,6 +1533,21 @@ class _CheckoutPageState extends State<CheckoutPage> {
     }
     setState(() => _step = 3);
   }
+
+  void _fillMockCheckoutData() {
+    _nameController.text = _mockCustomer.name;
+    _emailController.text = _mockCustomer.email;
+    _phoneController.text = _mockCustomer.phone;
+    _cepController.text = _mockAddress.cep;
+    _streetController.text = _mockAddress.street;
+    _numberController.text = _mockAddress.number;
+    _neighborhoodController.text = _mockAddress.neighborhood;
+    _cityController.text = _mockAddress.city;
+    _referenceController.text = _mockAddress.reference;
+    _deliveryWindow = 'Hoje, 18h - 20h';
+    _paymentMethod = 'Pix';
+    if (mounted) setState(() {});
+  }
 }
 
 const _mockEtaText = '35-50 min';
@@ -1503,6 +1589,63 @@ class _CheckoutProgress extends StatelessWidget {
           ),
         );
       }),
+    );
+  }
+}
+
+class _MockDataCard extends StatelessWidget {
+  const _MockDataCard({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.onTap,
+  });
+
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: _brandLightRed,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFFFC9C4)),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: _brandRed),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: _brandDarkRed,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(color: _textMuted),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.refresh, color: _brandRed),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -1569,6 +1712,287 @@ class _CheckoutSection extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           child,
+        ],
+      ),
+    );
+  }
+}
+
+class CustomerAreaPage extends StatelessWidget {
+  const CustomerAreaPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Área do cliente')),
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+          children: [
+            Container(
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                color: _brandRed,
+                borderRadius: BorderRadius.circular(18),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    height: 62,
+                    width: 62,
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.person,
+                      color: _brandRed,
+                      size: 34,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _mockCustomer.name,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 21,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          _mockCustomer.memberSince,
+                          style: const TextStyle(
+                            color: Color(0xFFFFE0DD),
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            _CheckoutSection(
+              title: 'Dados da conta',
+              subtitle: 'Perfil mockado para testes do fluxo de compra.',
+              icon: Icons.account_circle_outlined,
+              child: Column(
+                children: [
+                  _ProfileRow(
+                    icon: Icons.mail_outline,
+                    label: 'E-mail',
+                    value: _mockCustomer.email,
+                  ),
+                  _ProfileRow(
+                    icon: Icons.phone_outlined,
+                    label: 'Telefone',
+                    value: _mockCustomer.phone,
+                  ),
+                  _ProfileRow(
+                    icon: Icons.badge_outlined,
+                    label: 'CPF',
+                    value: _mockCustomer.cpf,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            const _CheckoutSection(
+              title: 'Endereço salvo',
+              subtitle: 'Usado automaticamente no checkout mockado.',
+              icon: Icons.location_on_outlined,
+              child: _SavedAddressCard(address: _mockAddress),
+            ),
+            const SizedBox(height: 12),
+            _CheckoutSection(
+              title: 'Pedidos recentes',
+              subtitle: 'Histórico mockado com status de pedidos.',
+              icon: Icons.receipt_long_outlined,
+              child: Column(
+                children: _mockOrders
+                    .map(
+                      (order) => Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: _OrderHistoryCard(order: order),
+                      ),
+                    )
+                    .toList(),
+              ),
+            ),
+            const SizedBox(height: 12),
+            const _CheckoutSection(
+              title: 'Carteira',
+              subtitle: 'Métodos mockados para a tela do cliente.',
+              icon: Icons.account_balance_wallet_outlined,
+              child: Column(
+                children: [
+                  _ProfileRow(
+                    icon: Icons.qr_code_2,
+                    label: 'Pix favorito',
+                    value: 'mariana.costa@email.com',
+                  ),
+                  _ProfileRow(
+                    icon: Icons.credit_card,
+                    label: 'Cartão salvo',
+                    value: 'Final 4482 • Crédito',
+                  ),
+                  _ProfileRow(
+                    icon: Icons.local_offer_outlined,
+                    label: 'Cupom disponível',
+                    value: 'MERCADO10',
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ProfileRow extends StatelessWidget {
+  const _ProfileRow({
+    required this.icon,
+    required this.label,
+    required this.value,
+  });
+
+  final IconData icon;
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        children: [
+          Icon(icon, color: _brandRed),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    color: _textMuted,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Text(
+                  value,
+                  style: const TextStyle(fontWeight: FontWeight.w900),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SavedAddressCard extends StatelessWidget {
+  const _SavedAddressCard({required this.address});
+
+  final MockAddress address;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFFBFA),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFFFD8D3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.home_outlined, color: _brandRed),
+              const SizedBox(width: 8),
+              Text(
+                address.label,
+                style: const TextStyle(fontWeight: FontWeight.w900),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(address.fullLine),
+          const SizedBox(height: 4),
+          Text(
+            '${address.city} • CEP ${address.cep}',
+            style: const TextStyle(color: _textMuted),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            address.reference,
+            style: const TextStyle(color: _textMuted),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OrderHistoryCard extends StatelessWidget {
+  const _OrderHistoryCard({required this.order});
+
+  final MockOrder order;
+
+  @override
+  Widget build(BuildContext context) {
+    final isActive = order.status != 'Entregue';
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: isActive ? _brandLightRed : const Color(0xFFFFFBFA),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFFFD8D3)),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            isActive ? Icons.delivery_dining : Icons.check_circle_outline,
+            color: _brandRed,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${order.id} • ${order.status}',
+                  style: const TextStyle(fontWeight: FontWeight.w900),
+                ),
+                Text(
+                  '${order.date} • ${order.items}',
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: _textMuted),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            formatCurrency(order.total),
+            style: const TextStyle(
+              color: _brandDarkRed,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
         ],
       ),
     );
@@ -1878,6 +2302,60 @@ class CartLine {
   final int amount;
 
   double get total => product.price * amount;
+}
+
+class MockCustomer {
+  const MockCustomer({
+    required this.name,
+    required this.email,
+    required this.phone,
+    required this.cpf,
+    required this.memberSince,
+  });
+
+  final String name;
+  final String email;
+  final String phone;
+  final String cpf;
+  final String memberSince;
+}
+
+class MockAddress {
+  const MockAddress({
+    required this.label,
+    required this.cep,
+    required this.street,
+    required this.number,
+    required this.neighborhood,
+    required this.city,
+    required this.reference,
+  });
+
+  final String label;
+  final String cep;
+  final String street;
+  final String number;
+  final String neighborhood;
+  final String city;
+  final String reference;
+
+  String get fullLine => '$street, $number - $neighborhood';
+}
+
+class MockOrder {
+  const MockOrder({
+    required this.id,
+    required this.date,
+    required this.status,
+    required this.total,
+    required this.items,
+  });
+
+  final String id;
+  final String date;
+  final String status;
+  final double total;
+  final String items;
 }
 
 class Product {

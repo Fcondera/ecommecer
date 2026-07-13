@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE_NAME = 'so-de-mercado-pwa-v3';
+const CACHE_NAME = 'so-de-mercado-pwa-v4';
 const CORE_ASSETS = [
   './',
   './index.html',
